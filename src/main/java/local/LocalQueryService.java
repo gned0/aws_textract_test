@@ -1,5 +1,8 @@
 package local;
 
+import software.amazon.awssdk.services.textract.model.GetDocumentTextDetectionResponse;
+import util.AWSService;
+import util.AWSServiceImpl;
 import util.QueryService;
 import java.util.HashSet;
 import java.util.Map;
@@ -8,6 +11,7 @@ import java.util.Set;
 public class LocalQueryService implements QueryService {
 
     private final Map<String, Set<String>> map;
+    private final AWSService aws = new AWSServiceImpl();
 
     public LocalQueryService() {
         map = LocalDictionary.deserializeDictionary();
@@ -21,7 +25,19 @@ public class LocalQueryService implements QueryService {
 
     @Override
     public synchronized void updateDictionary() {
-
+        Set<String> resumes = aws.listResumes();
+        resumes.forEach(r -> {
+            String jobId = aws.startTextDetection(r);
+            GetDocumentTextDetectionResponse response = aws.getJobResults(jobId);
+            System.out.println(response.hasBlocks());
+            response.blocks().forEach(block -> {
+                System.out.println(block.blockTypeAsString());
+                System.out.println(block.text());
+                if(block.blockTypeAsString() == "WORD") {
+                    this.addValue(block.text(), r);
+                }
+            });
+        });
     }
 
     @Override
@@ -43,7 +59,7 @@ public class LocalQueryService implements QueryService {
 
     public void printDictionary() {
         map.forEach((k, set) -> {
-            System.out.println("Key: " + k + ", set: " + ".");
+            System.out.println("Key: " + k + ", set: " + set + ".");
         });
     }
 }

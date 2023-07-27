@@ -12,8 +12,7 @@ public class TestLocalQueryService {
     public static void main(String[] args) {
 
         QueryService service = new LocalQueryService();
-        AWSService aws = new AWSServiceImpl();
-        aws.listResumes().forEach(e -> System.out.println(e));
+        service.printDictionary();
         Scanner scanner = new Scanner(System.in);
         System.out.print("Enter a keyword to be looked up in the resume dictionary: ");
         String inputKeyword = scanner.nextLine();

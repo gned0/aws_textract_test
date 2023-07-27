@@ -8,7 +8,7 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Iterable;
 import software.amazon.awssdk.services.textract.TextractClient;
-import software.amazon.awssdk.services.textract.model.GetDocumentTextDetectionResponse;
+import software.amazon.awssdk.services.textract.model.*;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -40,7 +40,10 @@ public class AWSServiceImpl implements AWSService{
     @Override
     public Set<String> listResumes() {
         Set<String> resumes = new HashSet<>();
-        S3Client client = S3Client.builder().region(Region.US_EAST_1).build();
+        S3Client s3Client = S3Client.builder()
+                .region(region)
+                .credentialsProvider(credentialsProvider)
+                .build();
         ListObjectsV2Request request = ListObjectsV2Request.builder().bucket(bucketName).build();
         ListObjectsV2Iterable response = s3Client.listObjectsV2Paginator(request);
         for (ListObjectsV2Response page : response) {
@@ -52,12 +55,57 @@ public class AWSServiceImpl implements AWSService{
     }
 
     @Override
-    public String startTextDetection(TextractClient textractClient, String bucketName, String docName) {
-        return null;
+    public String startTextDetection(String docName) {
+        try {
+
+            TextractClient textractClient = TextractClient.builder()
+                    .region(region)
+                    .credentialsProvider(credentialsProvider)
+                    .build();
+
+            software.amazon.awssdk.services.textract.model.S3Object s3Object = software.amazon.awssdk.services.textract.model.S3Object.builder()
+                    .bucket(bucketName)
+                    .name(docName)
+                    .build();
+
+            DocumentLocation location = DocumentLocation.builder()
+                    .s3Object(s3Object)
+                    .build();
+
+            StartDocumentTextDetectionRequest documentAnalysisRequest = StartDocumentTextDetectionRequest.builder()
+                    .documentLocation(location)
+                    .build();
+
+            StartDocumentTextDetectionResponse response = textractClient.startDocumentTextDetection(documentAnalysisRequest);
+
+            // Get the job ID
+            String jobId = response.jobId();
+            return jobId;
+
+        } catch (TextractException e) {
+            System.err.println(e.getMessage());
+            System.exit(1);
+        }
+        return "" ;
     }
 
     @Override
-    public GetDocumentTextDetectionResponse getJobResults(TextractClient textractClient, String jobId) {
-        return null;
+    public GetDocumentTextDetectionResponse getJobResults(String jobId) {
+
+        TextractClient textractClient = TextractClient.builder()
+                .region(region)
+                .credentialsProvider(credentialsProvider)
+                .build();
+
+        GetDocumentTextDetectionResponse response = null;
+
+        GetDocumentTextDetectionRequest request = GetDocumentTextDetectionRequest.builder()
+                .jobId(jobId)
+                .maxResults(1000)
+                .build();
+        response = textractClient.getDocumentTextDetection(request);
+        System.out.println("Job " + jobId + " succeeded.");
+        return response;
+
     }
 }
