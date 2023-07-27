@@ -1,42 +1,53 @@
-package org.example;
-// snippet-start:[textract.java2._start_doc_analysis.import]
+package org.examples;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.textract.model.*;
 import software.amazon.awssdk.services.textract.TextractClient;
 
-// snippet-end:[textract.java2._start_doc_analysis.import]
-
-/**
- * Before running this Java V2 code example, set up your development environment, including your credentials.
- *
- * For more information, see the following documentation topic:
- *
- * https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/get-started.html
- */
-public class AsyncDetectionRequest {
-
+public class AsyncDetectAndUse {
+    static String bucketName = "gian-bucket-00";
+    static String docName = "rachel_cv.pdf";
     public static void main(String[] args) {
 
-        String bucketName = "gian-bucket-00";
-        String docName = "rachel_cv.pdf";
+        ProfileCredentialsProvider credentialsProvider = ProfileCredentialsProvider.create();
+
         Region region = Region.EU_WEST_3;
         TextractClient textractClient = TextractClient.builder()
                 .region(region)
-                .credentialsProvider(ProfileCredentialsProvider.create())
+                .credentialsProvider(credentialsProvider)
+                .build();
+
+
+        S3Client s3Client = S3Client.builder()
+                .region(region)
+                .credentialsProvider(credentialsProvider)
                 .build();
 
         String jobId = startDocAnalysisS3(textractClient, bucketName, docName);
         System.out.println("Getting results for job " + jobId);
-        String status = getJobResults(textractClient, jobId);
-        System.out.println("The job status is "+ status);
+        GetDocumentTextDetectionResponse response = getJobResults(textractClient, jobId);
+        useResponse(response);
         textractClient.close();
+        s3Client.close();
     }
 
-    // snippet-start:[textract.java2._start_doc_analysis.main]
+    private static void useResponse(GetDocumentTextDetectionResponse response) {
+
+        response.blocks().forEach(block -> {
+            System.out.println("Block type is: " + block.blockType()
+                    + ", block text is " + block.text());
+        });
+
+    }
+
     public static String startDocAnalysisS3 (TextractClient textractClient, String bucketName, String docName) {
 
         try {
+
+            OutputConfig config = OutputConfig.builder()
+                    .s3Bucket(bucketName)
+                    .build();
 
             S3Object s3Object = S3Object.builder()
                     .bucket(bucketName)
@@ -64,8 +75,9 @@ public class AsyncDetectionRequest {
         return "" ;
     }
 
-    private static String getJobResults(TextractClient textractClient, String jobId) {
+    private static GetDocumentTextDetectionResponse getJobResults(TextractClient textractClient, String jobId) {
 
+        GetDocumentTextDetectionResponse response = null;
         boolean finished = false;
         int index = 0 ;
         String status = "" ;
@@ -77,12 +89,13 @@ public class AsyncDetectionRequest {
                         .maxResults(1000)
                         .build();
 
-                GetDocumentTextDetectionResponse response = textractClient.getDocumentTextDetection(request);
+                response = textractClient.getDocumentTextDetection(request);
                 status = response.jobStatus().toString();
 
                 if (status.compareTo("SUCCEEDED") == 0) {
                     finished = true;
-                    response.blocks().forEach(block -> System.out.println(block.text()));
+                    System.out.println(index + " status is: " + status);
+                    //putS3Object(s3Client, bucketName, docName.substring(0, docName.length() - 4), response);
                     }
                 else {
                     System.out.println(index + " status is: " + status);
@@ -91,13 +104,13 @@ public class AsyncDetectionRequest {
                 index++ ;
             }
 
-            return status;
 
         } catch( InterruptedException e) {
             System.out.println(e.getMessage());
             System.exit(1);
         }
-        return "";
+        System.out.println("Prova");
+        return response;
     }
-    // snippet-end:[textract.java2._start_doc_analysis.main]
+
 }

@@ -1,4 +1,4 @@
-package org.example;
+package org.examples;
 
 import software.amazon.awssdk.core.SdkBytes;
 
