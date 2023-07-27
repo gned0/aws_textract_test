@@ -1,6 +1,6 @@
 package local;
 
-import interfaces.QueryService;
+import util.QueryService;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -39,5 +39,11 @@ public class LocalQueryService implements QueryService {
             newSet.add(resume);
             map.put(keyword, newSet);
         }
+    }
+
+    public void printDictionary() {
+        map.forEach((k, set) -> {
+            System.out.println("Key: " + k + ", set: " + ".");
+        });
     }
 }
