@@ -1,13 +1,13 @@
 package local;
 
 import interfaces.QueryService;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 public class LocalQueryService implements QueryService {
 
-    private Map<String, Set<String>> map;
+    private final Map<String, Set<String>> map;
 
     public LocalQueryService() {
         map = LocalDictionary.deserializeDictionary();
@@ -26,6 +26,18 @@ public class LocalQueryService implements QueryService {
 
     @Override
     public synchronized Set<String> lookupKeyword(String keyword) {
-        return null;
+        return map.containsKey(keyword) ? map.get(keyword) : new HashSet<>();
+    }
+
+    private void addValue(String keyword, String resume) {
+        if (map.containsKey(keyword)) {
+            // Key exists, get the corresponding Set and add the value to it
+            map.get(keyword).add(resume);
+        } else {
+            // Key does not exist, create a new Set with the value and put it in the HashMap
+            Set<String> newSet = new HashSet<>();
+            newSet.add(resume);
+            map.put(keyword, newSet);
+        }
     }
 }
