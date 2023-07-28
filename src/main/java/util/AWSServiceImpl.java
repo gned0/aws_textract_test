@@ -18,24 +18,6 @@ public class AWSServiceImpl implements AWSService{
     private final String bucketName = "gian-bucket-00";
     private final Region region = Region.EU_WEST_3;
     private final ProfileCredentialsProvider credentialsProvider = ProfileCredentialsProvider.create();
-    private TextractClient textractClient;
-    private S3Client s3Client;
-
-
-    public AWSServiceImpl() {
-
-        TextractClient textractClient = TextractClient.builder()
-                .region(region)
-                .credentialsProvider(credentialsProvider)
-                .build();
-
-
-        S3Client s3Client = S3Client.builder()
-                .region(region)
-                .credentialsProvider(credentialsProvider)
-                .build();
-
-    }
 
     @Override
     public Set<String> listResumes() {
@@ -72,15 +54,14 @@ public class AWSServiceImpl implements AWSService{
                     .s3Object(s3Object)
                     .build();
 
-            StartDocumentTextDetectionRequest documentAnalysisRequest = StartDocumentTextDetectionRequest.builder()
+            StartDocumentTextDetectionRequest textDetectionRequest = StartDocumentTextDetectionRequest.builder()
                     .documentLocation(location)
                     .build();
 
-            StartDocumentTextDetectionResponse response = textractClient.startDocumentTextDetection(documentAnalysisRequest);
-
+            StartDocumentTextDetectionResponse response = textractClient.startDocumentTextDetection(textDetectionRequest);
+            System.out.println("Sent request for document: " + docName + " jobId is" + response.jobId());
             // Get the job ID
-            String jobId = response.jobId();
-            return jobId;
+            return response.jobId();
 
         } catch (TextractException e) {
             System.err.println(e.getMessage());
@@ -98,14 +79,25 @@ public class AWSServiceImpl implements AWSService{
                 .build();
 
         GetDocumentTextDetectionResponse response = null;
+        boolean finished = false;
+        String status = "" ;
 
-        GetDocumentTextDetectionRequest request = GetDocumentTextDetectionRequest.builder()
-                .jobId(jobId)
-                .maxResults(1000)
-                .build();
-        response = textractClient.getDocumentTextDetection(request);
-        System.out.println("Job " + jobId + " succeeded.");
+        while (!finished) {
+            GetDocumentTextDetectionRequest request = GetDocumentTextDetectionRequest.builder()
+                    .jobId(jobId)
+                    .maxResults(1000)
+                    .build();
+
+            response = textractClient.getDocumentTextDetection(request);
+            status = response.jobStatus().toString();
+
+            if (status.compareTo("SUCCEEDED") == 0) {
+                finished = true;
+                System.out.println("Job " + jobId + " done");
+            }
+        }
+
         return response;
-
     }
+
 }

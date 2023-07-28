@@ -4,6 +4,8 @@ import software.amazon.awssdk.services.textract.model.GetDocumentTextDetectionRe
 import util.AWSService;
 import util.AWSServiceImpl;
 import util.QueryService;
+
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -26,18 +28,21 @@ public class LocalQueryService implements QueryService {
     @Override
     public synchronized void updateDictionary() {
         Set<String> resumes = aws.listResumes();
+        Map<String, String> jobMap = new HashMap<>();
         resumes.forEach(r -> {
             String jobId = aws.startTextDetection(r);
-            GetDocumentTextDetectionResponse response = aws.getJobResults(jobId);
-            System.out.println(response.hasBlocks());
+            jobMap.put(jobId, r);
+        });
+        jobMap.entrySet().forEach(p -> {
+            GetDocumentTextDetectionResponse response = aws.getJobResults(p.getKey());
             response.blocks().forEach(block -> {
-                System.out.println(block.blockTypeAsString());
-                System.out.println(block.text());
-                if(block.blockTypeAsString() == "WORD") {
-                    this.addValue(block.text(), r);
+                if(block.blockTypeAsString().compareTo("WORD") == 0) {
+                    this.addValue(block.text().toLowerCase(), p.getValue());
                 }
             });
+
         });
+
     }
 
     @Override

@@ -10,7 +10,7 @@ public class TestDictionary {
     public static void main(String[] args) {
 
         Map<String, Set<String>> map = new HashMap<>();
-        Set.of("ciao", "come", "va").forEach(e -> {
+        /* Set.of("ciao", "come", "va").forEach(e -> {
             if (map.containsKey(e)) {
                 // Key exists, get the corresponding Set and add the value to it
                 map.get(e).add("prova.pdf");
@@ -20,7 +20,7 @@ public class TestDictionary {
                 newSet.add("prova.pdf");
                 map.put(e, newSet);
             }
-        });
+        }); */
         LocalDictionary.serializeDictionary(map);
         Map<String, Set<String>> mapOut = LocalDictionary.deserializeDictionary();
         mapOut.forEach((key, value) -> System.out.println(key));
