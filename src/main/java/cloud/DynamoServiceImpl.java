@@ -85,7 +85,7 @@ public class DynamoServiceImpl implements DynamoService {
     }
 
     @Override
-    public List<String> keywordQuery(String keyword) {
+    public Set<String> keywordQuery(String keyword) {
 
         ProfileCredentialsProvider credentialsProvider = ProfileCredentialsProvider.create();
         Region region = Region.EU_WEST_3;
@@ -105,24 +105,6 @@ public class DynamoServiceImpl implements DynamoService {
                 .tableName(tableName)
                 .build();
 
-        try {
-            // If there is no matching item, GetItem does not return any data.
-            Map<String,AttributeValue> returnedItem = dynamoDbClient.getItem(request).item();
-            if (returnedItem.isEmpty())
-                System.out.format("No item found with the key %s!\n", keyword);
-            else {
-                Set<String> keys = returnedItem.keySet();
-                System.out.println("Amazon DynamoDB table attributes: \n");
-                for (String key1 : keys) {
-                    System.out.format("%s: %s\n", key1, returnedItem.get(key1).toString());
-                }
-            }
-
-        } catch (DynamoDbException e) {
-            System.err.println(e.getMessage());
-            System.exit(1);
-        }
-        System.out.println(dynamoDbClient.getItem(request).item().get("Resumes"));
-        return List.of("");
+        return new HashSet<>(dynamoDbClient.getItem(request).item().get("Resumes").ss());
     }
 }
