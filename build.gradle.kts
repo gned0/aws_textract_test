@@ -21,6 +21,7 @@ dependencies {
     implementation("software.amazon.awssdk:ssooidc")
     implementation("org.slf4j:slf4j-simple:2.0.5")
     implementation("software.amazon.awssdk:textract:2.20.111")
+    implementation("software.amazon.awssdk:dynamodb:2.20.116")
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 }
