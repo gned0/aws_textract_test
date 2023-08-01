@@ -1,7 +1,5 @@
 package local;
 
-import util.AWSService;
-import util.AWSServiceImpl;
 import util.QueryService;
 
 import java.util.Scanner;

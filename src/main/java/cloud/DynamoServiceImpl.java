@@ -17,8 +17,39 @@ public class DynamoServiceImpl implements DynamoService {
     }
 
     @Override
-    public List<String> getAllValues() {
-        return null;
+    public Set<String> getAllValues() {
+
+        ProfileCredentialsProvider credentialsProvider = ProfileCredentialsProvider.create();
+        Region region = Region.EU_WEST_3;
+        DynamoDbClient dynamoDbClient = DynamoDbClient.builder()
+                .credentialsProvider(credentialsProvider)
+                .region(region)
+                .build();
+        // Define the name of the Set attribute you want to retrieve values from
+        String attribute = "Resumes";
+
+        // Set to store all the strings from the Set attribute
+        Set<String> allStringsSet = new HashSet<>();
+
+        // Prepare the ScanRequest to read all items from the table
+        ScanRequest scanRequest = ScanRequest.builder()
+                .tableName(tableName)
+                .build();
+
+        // Perform the Scan operation to read all items
+        ScanResponse scanResponse = dynamoDbClient.scan(scanRequest);
+
+        // Process each item in the scan result to extract the Set attribute values
+        for (Map<String, AttributeValue> item : scanResponse.items()) {
+            AttributeValue setAttribute = item.get(attribute);
+            if (setAttribute != null) {
+                allStringsSet.addAll(setAttribute.ss());
+            }
+        }
+
+        // System.out.println("All strings from the Set attribute: " + allStringsSet);
+        dynamoDbClient.close();
+        return allStringsSet;
     }
 
     @Override
@@ -26,11 +57,10 @@ public class DynamoServiceImpl implements DynamoService {
 
         ProfileCredentialsProvider credentialsProvider = ProfileCredentialsProvider.create();
         Region region = Region.EU_WEST_3;
-        DynamoDbClient ddb = DynamoDbClient.builder()
+        DynamoDbClient dynamoDbClient = DynamoDbClient.builder()
                 .credentialsProvider(credentialsProvider)
                 .region(region)
                 .build();
-
 
         Set<String> itemsToAdd = new HashSet<>(Set.of(resume));
 
@@ -41,11 +71,8 @@ public class DynamoServiceImpl implements DynamoService {
                 .expressionAttributeValues(Collections.singletonMap(":values", AttributeValue.builder().ss(itemsToAdd).build()))
                 .build();
 
-
-
         try {
-            UpdateItemResponse response = ddb.updateItem(request);
-            System.out.println(tableName +" was successfully updated. The request id is "+response.responseMetadata().requestId());
+            UpdateItemResponse response = dynamoDbClient.updateItem(request);
 
         } catch (ResourceNotFoundException e) {
             System.err.format("Error: The Amazon DynamoDB table \"%s\" can't be found.\n", tableName);
@@ -59,6 +86,43 @@ public class DynamoServiceImpl implements DynamoService {
 
     @Override
     public List<String> keywordQuery(String keyword) {
-        return null;
+
+        ProfileCredentialsProvider credentialsProvider = ProfileCredentialsProvider.create();
+        Region region = Region.EU_WEST_3;
+        DynamoDbClient dynamoDbClient = DynamoDbClient.builder()
+                .credentialsProvider(credentialsProvider)
+                .region(region)
+                .build();
+
+        HashMap<String,AttributeValue> keyToGet = new HashMap<>();
+        keyToGet.put("Keyword", AttributeValue.builder()
+                .s(keyword)
+                .build());
+
+        GetItemRequest request = GetItemRequest.builder()
+                .key(keyToGet)
+                .attributesToGet("Resumes")
+                .tableName(tableName)
+                .build();
+
+        try {
+            // If there is no matching item, GetItem does not return any data.
+            Map<String,AttributeValue> returnedItem = dynamoDbClient.getItem(request).item();
+            if (returnedItem.isEmpty())
+                System.out.format("No item found with the key %s!\n", keyword);
+            else {
+                Set<String> keys = returnedItem.keySet();
+                System.out.println("Amazon DynamoDB table attributes: \n");
+                for (String key1 : keys) {
+                    System.out.format("%s: %s\n", key1, returnedItem.get(key1).toString());
+                }
+            }
+
+        } catch (DynamoDbException e) {
+            System.err.println(e.getMessage());
+            System.exit(1);
+        }
+        System.out.println(dynamoDbClient.getItem(request).item().get("Resumes"));
+        return List.of("");
     }
 }

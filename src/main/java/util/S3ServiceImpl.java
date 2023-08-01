@@ -13,7 +13,7 @@ import software.amazon.awssdk.services.textract.model.*;
 import java.util.HashSet;
 import java.util.Set;
 
-public class AWSServiceImpl implements AWSService{
+public class S3ServiceImpl implements S3Service {
 
     private final String bucketName = "gian-bucket-00";
     private final Region region = Region.EU_WEST_3;

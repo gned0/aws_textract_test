@@ -1,8 +1,8 @@
 package local;
 
 import software.amazon.awssdk.services.textract.model.GetDocumentTextDetectionResponse;
-import util.AWSService;
-import util.AWSServiceImpl;
+import util.S3Service;
+import util.S3ServiceImpl;
 import util.QueryService;
 
 import java.util.HashMap;
@@ -13,7 +13,7 @@ import java.util.Set;
 public class LocalQueryService implements QueryService {
 
     private final Map<String, Set<String>> map;
-    private final AWSService aws = new AWSServiceImpl();
+    private final S3Service aws = new S3ServiceImpl();
 
     public LocalQueryService() {
         map = LocalDictionary.deserializeDictionary();
