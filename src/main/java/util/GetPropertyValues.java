@@ -31,7 +31,6 @@ public class GetPropertyValues {
         bucketName = properties.getProperty("s3.bucket.name");
         tableName = properties.getProperty("ddb.table.name");
         region = Region.of(properties.getProperty("aws.region.name"));
-
     }
 
     public static String getBucketName() {

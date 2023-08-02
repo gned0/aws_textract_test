@@ -1,10 +1,10 @@
 package cloud;
 
 import software.amazon.awssdk.services.textract.model.GetDocumentTextDetectionResponse;
+import util.GetPropertyValues;
 import util.QueryService;
 import util.S3Service;
 import util.S3ServiceImpl;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -17,7 +17,7 @@ public class CloudQueryService implements QueryService {
     public CloudQueryService() {
 
         this.s3Service = new S3ServiceImpl();
-        this.dynamoService = new DynamoServiceImpl("ResumeTable");
+        this.dynamoService = new DynamoServiceImpl(GetPropertyValues.getTableName());
         this.updateDictionary();
     }
 
@@ -29,7 +29,7 @@ public class CloudQueryService implements QueryService {
     @Override
     public void updateDictionary() {
         Set<String> s3Resumes = s3Service.listResumes();
-        Set<String> processedResumes = dynamoService.getAllValues(true);
+        Set<String> processedResumes = dynamoService.getAllValues(false);
 
         Set<String> resumes = s3Resumes.stream()
                 .filter(item -> !processedResumes.contains(item)).collect(Collectors.toSet());

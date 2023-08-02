@@ -5,16 +5,16 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.*;
 import util.DynamoService;
+import util.GetPropertyValues;
 
 import java.util.*;
 
 public class DynamoServiceImpl implements DynamoService {
 
     private final String tableName;
-    private final Region region = Region.EU_WEST_3;
     private final DynamoDbClient dynamoDbClient = DynamoDbClient.builder()
             .credentialsProvider(ProfileCredentialsProvider.create())
-            .region(region)
+            .region(GetPropertyValues.getRegion())
             .build();
 
     public DynamoServiceImpl(String tableName) {

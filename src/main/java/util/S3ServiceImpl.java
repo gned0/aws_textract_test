@@ -16,14 +16,13 @@ import java.util.Set;
 public class S3ServiceImpl implements S3Service {
 
     private final String bucketName = GetPropertyValues.getBucketName();
-    private final Region region = Region.EU_WEST_3;
     private final ProfileCredentialsProvider credentialsProvider = ProfileCredentialsProvider.create();
     private final S3Client s3Client = S3Client.builder()
-            .region(region)
+            .region(GetPropertyValues.getRegion())
             .credentialsProvider(credentialsProvider)
             .build();
     private final TextractClient textractClient = TextractClient.builder()
-            .region(region)
+            .region(GetPropertyValues.getRegion())
             .credentialsProvider(credentialsProvider)
             .build();
 
@@ -71,11 +70,6 @@ public class S3ServiceImpl implements S3Service {
 
     @Override
     public GetDocumentTextDetectionResponse getJobResults(String jobId) {
-
-        TextractClient textractClient = TextractClient.builder()
-                .region(region)
-                .credentialsProvider(credentialsProvider)
-                .build();
 
         GetDocumentTextDetectionResponse response = null;
         boolean finished = false;
