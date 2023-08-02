@@ -6,19 +6,18 @@ import util.S3Service;
 import util.S3ServiceImpl;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class CloudQueryService implements QueryService {
 
-    private final S3Service s3Client;
-    private final DynamoServiceImpl dynamoDbClient;
+    private final S3Service s3Service;
+    private final DynamoServiceImpl dynamoService;
     public CloudQueryService() {
 
-        this.s3Client = new S3ServiceImpl();
-        this.dynamoDbClient = new DynamoServiceImpl("ResumeTable");
+        this.s3Service = new S3ServiceImpl();
+        this.dynamoService = new DynamoServiceImpl("ResumeTable");
         this.updateDictionary();
     }
 
@@ -29,8 +28,8 @@ public class CloudQueryService implements QueryService {
 
     @Override
     public void updateDictionary() {
-        Set<String> s3Resumes = s3Client.listResumes();
-        Set<String> processedResumes = dynamoDbClient.getAllValues(true);
+        Set<String> s3Resumes = s3Service.listResumes();
+        Set<String> processedResumes = dynamoService.getAllValues(true);
 
         Set<String> resumes = s3Resumes.stream()
                 .filter(item -> !processedResumes.contains(item)).collect(Collectors.toSet());
@@ -41,14 +40,14 @@ public class CloudQueryService implements QueryService {
 
         Map<String, String> jobMap = new HashMap<>();
         resumes.forEach(r -> {
-            String jobId = s3Client.startTextDetection(r);
+            String jobId = s3Service.startTextDetection(r);
             jobMap.put(jobId, r);
         });
         jobMap.forEach((key, value) -> {
-            GetDocumentTextDetectionResponse response = s3Client.getJobResults(key);
+            GetDocumentTextDetectionResponse response = s3Service.getJobResults(key);
             response.blocks().forEach(block -> {
                 if (block.blockTypeAsString().compareTo("WORD") == 0) {
-                    this.dynamoDbClient.putItemInTable(block.text().toLowerCase(), value);
+                    this.dynamoService.putItemInTable(block.text().toLowerCase(), value);
                 }
             });
 
@@ -57,11 +56,11 @@ public class CloudQueryService implements QueryService {
 
     @Override
     public Set<String> lookupKeyword(String keyword) {
-        return this.dynamoDbClient.keywordQuery(keyword.toLowerCase());
+        return this.dynamoService.keywordQuery(keyword.toLowerCase());
     }
 
     @Override
     public void printDictionary() {
-        dynamoDbClient.scan();
+        dynamoService.scan();
     }
 }

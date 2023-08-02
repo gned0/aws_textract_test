@@ -11,6 +11,11 @@ import java.util.*;
 public class DynamoServiceImpl implements DynamoService {
 
     private final String tableName;
+    private final Region region = Region.EU_WEST_3;
+    private final DynamoDbClient dynamoDbClient = DynamoDbClient.builder()
+            .credentialsProvider(ProfileCredentialsProvider.create())
+            .region(region)
+            .build();
 
     public DynamoServiceImpl(String tableName) {
         this.tableName = tableName;
@@ -19,12 +24,6 @@ public class DynamoServiceImpl implements DynamoService {
     @Override
     public Set<String> getAllValues(boolean print) {
 
-        ProfileCredentialsProvider credentialsProvider = ProfileCredentialsProvider.create();
-        Region region = Region.EU_WEST_3;
-        DynamoDbClient dynamoDbClient = DynamoDbClient.builder()
-                .credentialsProvider(credentialsProvider)
-                .region(region)
-                .build();
         // Define the name of the Set attribute you want to retrieve values from
         String attribute = "Resumes";
 
@@ -47,8 +46,6 @@ public class DynamoServiceImpl implements DynamoService {
             }
         }
 
-        // System.out.println("All strings from the Set attribute: " + allStringsSet);
-        dynamoDbClient.close();
         if(print) allStringsSet.forEach(System.out::println);
         return allStringsSet;
     }
@@ -56,26 +53,19 @@ public class DynamoServiceImpl implements DynamoService {
     @Override
     public void putItemInTable(String keyword, String resume) {
 
-        ProfileCredentialsProvider credentialsProvider = ProfileCredentialsProvider.create();
-        Region region = Region.EU_WEST_3;
-        try (DynamoDbClient dynamoDbClient = DynamoDbClient.builder()
-                .credentialsProvider(credentialsProvider)
-                .region(region)
-                .build()) {
+        Set<String> itemsToAdd = new HashSet<>(Set.of(resume));
 
-            Set<String> itemsToAdd = new HashSet<>(Set.of(resume));
-
-            UpdateItemRequest request = UpdateItemRequest.builder()
+        UpdateItemRequest request = UpdateItemRequest.builder()
                     .tableName(tableName)
                     .key(Collections.singletonMap("Keyword", AttributeValue.builder().s(keyword).build()))
                     .updateExpression("ADD Resumes :values")
                     .expressionAttributeValues(Collections.singletonMap(":values", AttributeValue.builder().ss(itemsToAdd).build()))
                     .build();
 
-            try {
-                UpdateItemResponse response = dynamoDbClient.updateItem(request);
+        try {
+            UpdateItemResponse response = dynamoDbClient.updateItem(request);
 
-            } catch (ResourceNotFoundException e) {
+        } catch (ResourceNotFoundException e) {
                 System.err.format("Error: The Amazon DynamoDB table \"%s\" can't be found.\n", tableName);
                 System.err.println("Be sure that it exists and that you've typed its name correctly!");
                 System.exit(1);
@@ -83,18 +73,11 @@ public class DynamoServiceImpl implements DynamoService {
                 System.err.println(e.getMessage());
                 System.exit(1);
             }
-        }
+
     }
 
     @Override
     public Set<String> keywordQuery(String keyword) {
-
-        ProfileCredentialsProvider credentialsProvider = ProfileCredentialsProvider.create();
-        Region region = Region.EU_WEST_3;
-        DynamoDbClient dynamoDbClient = DynamoDbClient.builder()
-                .credentialsProvider(credentialsProvider)
-                .region(region)
-                .build();
 
         HashMap<String,AttributeValue> keyToGet = new HashMap<>();
         keyToGet.put("Keyword", AttributeValue.builder()
@@ -112,12 +95,6 @@ public class DynamoServiceImpl implements DynamoService {
 
     public void scan() {
 
-        ProfileCredentialsProvider credentialsProvider = ProfileCredentialsProvider.create();
-        Region region = Region.EU_WEST_3;
-        DynamoDbClient dynamoDbClient = DynamoDbClient.builder()
-                .credentialsProvider(credentialsProvider)
-                .region(region)
-                .build();
 
         ScanRequest scanRequest = ScanRequest.builder()
                 .tableName(this.tableName)
@@ -135,6 +112,5 @@ public class DynamoServiceImpl implements DynamoService {
             }
         }
 
-        dynamoDbClient.close();
     }
 }

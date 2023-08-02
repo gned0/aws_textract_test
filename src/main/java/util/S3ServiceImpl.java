@@ -15,19 +15,23 @@ import java.util.Set;
 
 public class S3ServiceImpl implements S3Service {
 
-    private final String bucketName = "gian-bucket-00";
+    private final String bucketName = GetPropertyValues.getBucketName();
     private final Region region = Region.EU_WEST_3;
     private final ProfileCredentialsProvider credentialsProvider = ProfileCredentialsProvider.create();
+    private final S3Client s3Client = S3Client.builder()
+            .region(region)
+            .credentialsProvider(credentialsProvider)
+            .build();
+    private final TextractClient textractClient = TextractClient.builder()
+            .region(region)
+            .credentialsProvider(credentialsProvider)
+            .build();
 
     @Override
     public Set<String> listResumes() {
         Set<String> resumes = new HashSet<>();
-        S3Client s3Client = S3Client.builder()
-                .region(region)
-                .credentialsProvider(credentialsProvider)
-                .build();
         ListObjectsV2Request request = ListObjectsV2Request.builder().bucket(bucketName).build();
-        ListObjectsV2Iterable response = s3Client.listObjectsV2Paginator(request);
+        ListObjectsV2Iterable response = this.s3Client.listObjectsV2Paginator(request);
         for (ListObjectsV2Response page : response) {
             page.contents().forEach((S3Object object) -> {
                 resumes.add(object.key());
@@ -39,11 +43,6 @@ public class S3ServiceImpl implements S3Service {
     @Override
     public String startTextDetection(String docName) {
         try {
-
-            TextractClient textractClient = TextractClient.builder()
-                    .region(region)
-                    .credentialsProvider(credentialsProvider)
-                    .build();
 
             software.amazon.awssdk.services.textract.model.S3Object s3Object = software.amazon.awssdk.services.textract.model.S3Object.builder()
                     .bucket(bucketName)
@@ -58,7 +57,7 @@ public class S3ServiceImpl implements S3Service {
                     .documentLocation(location)
                     .build();
 
-            StartDocumentTextDetectionResponse response = textractClient.startDocumentTextDetection(textDetectionRequest);
+            StartDocumentTextDetectionResponse response = this.textractClient.startDocumentTextDetection(textDetectionRequest);
             System.out.println("Sent request for document: " + docName + " jobId is" + response.jobId());
             // Get the job ID
             return response.jobId();

@@ -7,7 +7,7 @@ public class TestDBInsertion {
     public static void main(String[] args) {
 
         DynamoService ddbService = new DynamoServiceImpl("ResumeTable");
-        ddbService.putItemInTable("Engineer", "augusto_cv.pdf");
+        ddbService.putItemInTable("engineer", "augusto_cv.pdf");
 
     }
 }
