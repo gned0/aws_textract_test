@@ -11,25 +11,34 @@ public class TestCloudQueryService {
 
         QueryService service = new CloudQueryService();
         Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter a keyword to be looked up in the resume dictionary: ");
-        String inputKeyword = scanner.nextLine();
-        scanner.close();
+        String exitWord = "quit";
 
-        Set<String> resultSet = service.lookupKeyword(inputKeyword);
-        if(resultSet.size() < 1) {
-            System.out.println("-----------------------------------------");
-            System.out.println("No resume containing input keyword were found.");
-            System.out.println("-----------------------------------------");
-        } else {
-            System.out.println("-----------------------------------------");
-            System.out.println("The following resumes containing input keyword were found: "
-                    + String.join(", ", resultSet) + ".");
-            System.out.println("-----------------------------------------");
+        String inputKeyword = "";
+        while (!inputKeyword.equalsIgnoreCase(exitWord)) {
+            // Request a word from the user
+            System.out.print("Enter a keyword to be looked up in the resume dictionary " +
+                    "(or enter 'quit' to shut the service down): ");
+            inputKeyword = scanner.nextLine();
+
+            if (!inputKeyword.equalsIgnoreCase(exitWord)) {
+                Set<String> resultSet = service.lookupKeyword(inputKeyword);
+                if(resultSet.size() < 1) {
+                    System.out.println("-----------------------------------------");
+                    System.out.println("No resumes containing input keyword were found.");
+                    System.out.println("-----------------------------------------");
+                } else {
+                    System.out.println("-----------------------------------------");
+                    System.out.println("The following resumes containing input keyword were found: "
+                            + String.join(", ", resultSet) + ".");
+                    System.out.println("-----------------------------------------");
+                }
+            }
         }
 
+        System.out.println("Resume Full-text search service is shutting down");
+        scanner.close();
         service.closeService();
 
     }
-
 
 }

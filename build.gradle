@@ -1,13 +1,5 @@
 plugins {
-    `java-library`
-}
-
-group = "aws.test"
-version = "1.0-SNAPSHOT"
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    id 'application'
 }
 
 repositories {
@@ -26,6 +18,25 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
 }
 
-tasks.test {
+application {
+    // Define the main class for the application.
+    mainClass = 'cloud.TestCloudQueryService'
+}
+
+run {
+    standardInput = System.in
+}
+
+tasks.named('test') {
+    // Use JUnit Platform for unit tests.
     useJUnitPlatform()
+
+}
+
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'cloud.TestCloudQueryService'
+        )
+    }
 }
