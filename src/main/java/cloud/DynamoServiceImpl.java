@@ -93,6 +93,11 @@ public class DynamoServiceImpl implements DynamoService {
         return new HashSet<>(dynamoDbClient.getItem(request).item().get("Resumes").ss());
     }
 
+    @Override
+    public void close() {
+        dynamoDbClient.close();
+    }
+
     public void scan() {
 
 

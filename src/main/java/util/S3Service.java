@@ -9,5 +9,6 @@ public interface S3Service {
     Set<String> listResumes();
     String startTextDetection(String docName);
     GetDocumentTextDetectionResponse getJobResults(String jobId);
+    void close();
 
 }

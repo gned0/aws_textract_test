@@ -9,5 +9,6 @@ public interface DynamoService {
     void putItemInTable(String keyword, String resume);
 
     Set<String> keywordQuery(String keyword);
+    void close();
 
 }

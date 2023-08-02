@@ -23,7 +23,8 @@ public class CloudQueryService implements QueryService {
 
     @Override
     public void closeService() {
-
+        this.s3Service.close();
+        this.dynamoService.close();
     }
 
     @Override

@@ -1,7 +1,6 @@
 package util;
 
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
@@ -91,6 +90,12 @@ public class S3ServiceImpl implements S3Service {
         }
 
         return response;
+    }
+
+    @Override
+    public void close() {
+        this.s3Client.close();
+        this.textractClient.close();
     }
 
 }
