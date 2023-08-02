@@ -11,12 +11,13 @@ public class TestCloudQueryService {
     public static void main(String[] args) {
 
         QueryService service = new CloudQueryService();
+        // service.printDictionary();
         Scanner scanner = new Scanner(System.in);
         System.out.print("Enter a keyword to be looked up in the resume dictionary: ");
         String inputKeyword = scanner.nextLine();
         scanner.close();
 
-        Set<String> resultSet = service.lookupKeyword(inputKeyword.toLowerCase());
+        Set<String> resultSet = service.lookupKeyword(inputKeyword);
         if(resultSet.size() < 1) {
             System.out.println("-----------------------------------------");
             System.out.println("No resume containing input keyword were found.");

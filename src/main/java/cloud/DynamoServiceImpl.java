@@ -17,7 +17,7 @@ public class DynamoServiceImpl implements DynamoService {
     }
 
     @Override
-    public Set<String> getAllValues() {
+    public Set<String> getAllValues(boolean print) {
 
         ProfileCredentialsProvider credentialsProvider = ProfileCredentialsProvider.create();
         Region region = Region.EU_WEST_3;
@@ -49,6 +49,7 @@ public class DynamoServiceImpl implements DynamoService {
 
         // System.out.println("All strings from the Set attribute: " + allStringsSet);
         dynamoDbClient.close();
+        if(print) allStringsSet.forEach(System.out::println);
         return allStringsSet;
     }
 
@@ -106,5 +107,37 @@ public class DynamoServiceImpl implements DynamoService {
                 .build();
 
         return new HashSet<>(dynamoDbClient.getItem(request).item().get("Resumes").ss());
+    }
+
+    public void scan() {
+
+        ProfileCredentialsProvider credentialsProvider = ProfileCredentialsProvider.create();
+        Region region = Region.EU_WEST_3;
+        DynamoDbClient dynamoDbClient = DynamoDbClient.builder()
+                .credentialsProvider(credentialsProvider)
+                .region(region)
+                .build();
+
+        // Prepare the ScanRequest to read all items from the table
+        ScanRequest scanRequest = ScanRequest.builder()
+                .tableName(this.tableName)
+                .build();
+
+        // Perform the Scan operation to read all items
+        ScanResponse scanResponse = dynamoDbClient.scan(scanRequest);
+
+        // Process each item in the scan result to extract keys and values
+        for (Map<String, AttributeValue> item : scanResponse.items()) {
+            for (Map.Entry<String, AttributeValue> entry : item.entrySet()) {
+                String key = entry.getKey();
+                AttributeValue value = entry.getValue();
+
+                System.out.println("Key: " + key);
+                System.out.println("Value: " + value);
+            }
+        }
+
+        // Close the DynamoDB client when done
+        dynamoDbClient.close();
     }
 }

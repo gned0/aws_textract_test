@@ -19,6 +19,7 @@ public class CloudQueryService implements QueryService {
 
         this.s3Client = new S3ServiceImpl();
         this.dynamoDbClient = new DynamoServiceImpl("ResumeTable");
+        this.updateDictionary();
     }
 
     @Override
@@ -29,7 +30,7 @@ public class CloudQueryService implements QueryService {
     @Override
     public void updateDictionary() {
         Set<String> s3Resumes = s3Client.listResumes();
-        Set<String> processedResumes = dynamoDbClient.getAllValues();
+        Set<String> processedResumes = dynamoDbClient.getAllValues(true);
 
         Set<String> resumes = new HashSet<>(s3Resumes.stream()
                 .filter(item -> !processedResumes.contains(item))
@@ -57,11 +58,11 @@ public class CloudQueryService implements QueryService {
 
     @Override
     public Set<String> lookupKeyword(String keyword) {
-        return  this.dynamoDbClient.keywordQuery(keyword);
+        return this.dynamoDbClient.keywordQuery(keyword.toLowerCase());
     }
 
     @Override
     public void printDictionary() {
-
+        dynamoDbClient.scan();
     }
 }
