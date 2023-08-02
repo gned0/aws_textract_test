@@ -32,9 +32,8 @@ public class CloudQueryService implements QueryService {
         Set<String> s3Resumes = s3Client.listResumes();
         Set<String> processedResumes = dynamoDbClient.getAllValues(true);
 
-        Set<String> resumes = new HashSet<>(s3Resumes.stream()
-                .filter(item -> !processedResumes.contains(item))
-                .collect(Collectors.toSet()));
+        Set<String> resumes = s3Resumes.stream()
+                .filter(item -> !processedResumes.contains(item)).collect(Collectors.toSet());
 
         resumes.addAll(s3Resumes.stream()
                 .filter(item -> !processedResumes.contains(item))
@@ -45,11 +44,11 @@ public class CloudQueryService implements QueryService {
             String jobId = s3Client.startTextDetection(r);
             jobMap.put(jobId, r);
         });
-        jobMap.entrySet().forEach(p -> {
-            GetDocumentTextDetectionResponse response = s3Client.getJobResults(p.getKey());
+        jobMap.forEach((key, value) -> {
+            GetDocumentTextDetectionResponse response = s3Client.getJobResults(key);
             response.blocks().forEach(block -> {
-                if(block.blockTypeAsString().compareTo("WORD") == 0) {
-                    this.dynamoDbClient.putItemInTable(block.text().toLowerCase(), p.getValue());
+                if (block.blockTypeAsString().compareTo("WORD") == 0) {
+                    this.dynamoDbClient.putItemInTable(block.text().toLowerCase(), value);
                 }
             });
 

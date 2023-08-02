@@ -1,6 +1,5 @@
 package cloud;
 
-import local.LocalQueryService;
 import util.QueryService;
 
 import java.util.Scanner;
